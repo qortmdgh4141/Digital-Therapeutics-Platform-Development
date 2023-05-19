@@ -21,7 +21,7 @@ def train_test_dir_path(dir_path):
     return train_dir_path, test_dir_path, feature_train_test
 
 all_dir_path = []
-dir_paths = [os.path.join("../../training_test data generator/merged_sample3/s12_22/angle360_step10", feature) for feature in ["distance", "height", "type"]]
+dir_paths = [os.path.join("../../training_test_data_generator/merged_sample3/s12_22/angle360_step10", feature) for feature in ["distance", "height", "type"]]
 split_accuracy = True
 
 for dir_path in dir_paths :
