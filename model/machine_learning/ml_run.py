@@ -22,7 +22,7 @@ def train_test_dir_path(dir_path):
 
 all_dir_path = []
 dir_paths = [os.path.join("../../training_test_data_generator/merged_sample3/s12_22/angle360_step90", feature) for feature in ["distance", "height", "type"]]
-reshaped_dataset = False # True(batch_size, 36 * 4 * 2 * 1001) -> False(batch_size * 36, 4 * 2 * 1001)
+individual_angle = False # True(batch_size, 36 * 4 * 2 * 1001) -> False(batch_size * 36, 4 * 2 * 1001)
 
 for dir_path in dir_paths :
     subdir_name = next(os.walk(dir_path))[1]
@@ -47,7 +47,7 @@ for num, dir_path in enumerate(all_dir_path):
 
     print(f"Start ({num+1} / {len(all_dir_path)})     :       {train_test_set_composition}    ({dir_path})")
     ml = ml_clf(train_path, test_path)
-    knn_result, svm_result, c50_result, average_result  = ml.main(reshaped_dataset)
+    knn_result, svm_result, c50_result, average_result  = ml.main(individual_angle)
 
     # 새로운 값 추가
     new_values = [train_test_set_composition, knn_result, svm_result, c50_result, average_result]

@@ -11,13 +11,13 @@ class ml_clf:
         self.train_dir_path = train_dir_path
         self.test_dir_path = test_dir_path
 
-    def main(self, reshaped_dataset):
+    def main(self, individual_angle):
         x_train, y_train = self.load_dataset(dir_path=self.train_dir_path, mode="TRAIN")
         x_test, y_test = self.load_dataset(dir_path=self.test_dir_path, mode="TEST")
 
-        if reshaped_dataset == True:
-            x_train, y_train = self.reshape_data(x_train, y_train)
-            x_test, y_test = self.reshape_data(x_test, y_test)
+        if individual_angle == True:
+            x_train, y_train = self.reshape_to_individual_angle(x_train, y_train)
+            x_test, y_test = self.reshape_to_individual_angle(x_test, y_test)
 
         (x_train_std, x_test_std) = self.standardize_data(x_train, x_test, with_mean=False)
 
@@ -49,7 +49,7 @@ class ml_clf:
 
         return x_train, y_train
 
-    def reshape_data(self, x_data, y_data):
+    def reshape_to_individual_angle(self, x_data, y_data):
         x_data_reshaped = x_data.reshape((-1, x_data.shape[2], x_data.shape[3], x_data.shape[4])) # x_train 변환
         y_data_repeated = np.repeat(y_data, 36)  # y_train 변환
 

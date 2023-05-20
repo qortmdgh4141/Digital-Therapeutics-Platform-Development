@@ -1,6 +1,7 @@
 import os
+import time
 import pandas as pd
-from model.minirocket.minirocket_classifier import minirocket_clf
+from minirocket_classifier import minirocket_clf
 
 def train_test_dir_path(dir_path):
     split_path = dir_path.split('\\')
@@ -23,6 +24,7 @@ def train_test_dir_path(dir_path):
 all_dir_path = []
 dir_paths = [os.path.join("../../training_test_data_generator/merged_sample3/s12_22/angle360_step10", feature) for feature in ["distance", "height", "type"]]
 split_accuracy = True
+augmentation = False
 
 for dir_path in dir_paths :
     subdir_name = next(os.walk(dir_path))[1]
@@ -44,16 +46,16 @@ for num, dir_path in enumerate(all_dir_path):
     (train_path, test_path, train_test_set_composition) = train_test_dir_path(dir_path)
 
     print(f"Start ({num+1} / {len(all_dir_path)})     :       {train_test_set_composition}    ({dir_path})")
+    start_time = time.time()
     minirocket = minirocket_clf(train_path, test_path)
 
     if split_accuracy == True:
         element = train_test_set_composition.split('(')[0]
-        minirocket_result = minirocket.main(element)
+        minirocket_result = minirocket.main(augmentation=augmentation, element=element)
     else :
-        minirocket_result = minirocket.main()
+        element = None
+        minirocket_result = minirocket.main(augmentation=augmentation, element=element)
 
-
-    print(minirocket_result)
     # 새로운 값 추가
     if split_accuracy == True:
         new_values = [train_test_set_composition, minirocket_result[0], minirocket_result[1], minirocket_result[2], minirocket_result[3], minirocket_result[4], minirocket_result[5], minirocket_result[6]]
@@ -66,10 +68,15 @@ for num, dir_path in enumerate(all_dir_path):
     if (num - 2) % 3 == 0:
         empty_row = pd.DataFrame([{}], columns=result_df.columns)
         result_df = pd.concat([result_df, empty_row], ignore_index=True)
+
+    elapsed_time = time.time() - start_time
+    minutes = int(elapsed_time // 60)
+    seconds = int(elapsed_time % 60)
+    print(f"Time elapsed: {minutes} minutes {seconds} seconds\n")
     print("\n")
 
 # 데이터프레임을 엑셀 파일로 저장
-result_df.to_excel('sample_result_2.xlsx', index=False)
+result_df.to_excel('sample_result_100.xlsx', index=False)
 
 
 

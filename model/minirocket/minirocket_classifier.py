@@ -1,4 +1,5 @@
 import os
+import sys
 import random
 import numpy as np
 
@@ -16,17 +17,24 @@ class minirocket_clf:
         self.num_runs = num_runs
         self.num_kernels = num_kernels
 
-    def main(self, element = None):
-        x_train, y_train = self.load_dataset(dir_path=self.train_dir_path, mode="TRAIN", shuffle = True)
-        x_test, y_test = self.load_dataset(dir_path=self.test_dir_path, mode="TEST", shuffle = False)
+    def main(self, augmentation, element):
+        x_train, y_train = self.load_dataset(dir_path=self.train_dir_path, mode="TRAIN", shuffle=True)
+        x_test, y_test = self.load_dataset(dir_path=self.test_dir_path, mode="TEST", shuffle=False)
 
-        x_train = self.reshape_data(x_train)
-        x_test = self.reshape_data(x_test)
+        x_train = self.reshape_data(x_train, norm=False, std=False, with_mean=False)
+        x_test = self.reshape_data(x_test, norm=False, std=False, with_mean=False)
 
-        minirocket_result = self.train_test_minirocket(x_train, x_test, y_train, y_test, element)
+        if augmentation == True:
+            x_train, y_train, augment_num_angles = self.augment_data(x_train, y_train, shuffle=True)
+            x_test, y_test, augment_num_angles = self.augment_data(x_test, y_test, shuffle=False)
+        else:
+            augment_num_angles = 1
+
+        print()
+
+        minirocket_result = self.train_test_minirocket(x_train, y_train, x_test, y_test, element, augment_num_angles)
 
         return minirocket_result
-
 
     def load_dataset(self, dir_path, mode, shuffle):
         x_train_list = []
@@ -54,7 +62,7 @@ class minirocket_clf:
 
         return x_train, y_train
 
-    def reshape_data(self, data, norm=False, std=False, with_mean=True):
+    def reshape_data(self, data, norm, std, with_mean):
         if std == True:
             if with_mean==True:
                 mean = np.mean(data, axis=(0, 1, 2, 3, 4), keepdims=True)
@@ -72,7 +80,40 @@ class minirocket_clf:
 
         return reshaped_x_data
 
-    def train_test_minirocket(self,x_train, x_test, y_train, y_test, element):
+    def augment_data(self, x_data, y_data, shuffle):
+        num_samples = x_data.shape[0]  # 배치 사이즈
+        num_angles = x_data.shape[1]  # 각도의 개수
+
+        # 어규멘테이션된 데이터를 저장할 변수 초기화
+        augmented_x_data = np.zeros((num_samples * num_angles, *x_data.shape[1:]), dtype=x_data.dtype)
+        augmented_y_data = np.zeros((num_samples * num_angles), dtype=x_data.dtype)
+
+        for i in range(num_samples):
+            for j in range(num_angles):
+                # 어규멘테이션 데이터
+                augmented_x_data[i * num_angles + j] = np.roll(x_data[i], -j, axis=0)
+                augmented_y_data[i * num_angles + j] = y_data[i]
+
+        # 라벨 매핑 검증
+        for i in range(num_samples):
+            start_index = i * num_angles
+            end_index = (i + 1) * num_angles
+            labels = np.unique(augmented_y_data[start_index:end_index])
+
+            if labels[0] != y_data[i]:
+                print("Label mapping error for x_train[{}], y_train[{}].".format(i, i))
+
+        # augmented_x_train의 배치사이즈를 기준으로 데이터 순서를 셔플
+        if shuffle == True:
+            shuffle_indices = np.random.permutation(augmented_x_data.shape[0])
+            augmented_x_data = augmented_x_data[shuffle_indices]
+            augmented_y_data = augmented_y_data[shuffle_indices]
+
+        print("\t - Original to Augmented 'x_data / y_data' shape:", x_data.shape, "/", y_data.shape, "->", augmented_x_data.shape, "/", augmented_y_data.shape)
+
+        return augmented_x_data, augmented_y_data, num_angles
+
+    def train_test_minirocket(self, x_train, y_train, x_test, y_test, element, augment_num_angles):
         if element == None:
             _results = np.zeros(self.num_runs)
         else:
@@ -97,40 +138,52 @@ class minirocket_clf:
             if element == None:
                 _results[i] = classifier.score(x_test_transform, y_test)
             else:
-                x_test_all, y_test_all= self.split_y_test(x_train_transform , y_test, element)
-
-                print("y_test_all", len(y_test_all))
-                print("y_test_all[0]", len(y_test_all[0]))
+                x_test_all, y_test_all= self.split_y_test(x_test_transform , y_test, element, augment_num_angles)
 
                 count = 0
                 for num_1 in range(len(y_test_all)):
                     for num_2 in range(len(y_test_all[0])):
                         _results[count][i] = classifier.score(x_test_all[num_1][num_2], y_test_all[num_1][num_2])
-                        print(_results[count][i])
-                        print(x_test_all[num_1][num_2])
-                        print(y_test_all[num_1][num_2])
                         count+=1
 
+            percent_complete = (i + 1) / self.num_runs * 100
+            sys.stdout.write("\r")
+            sys.stdout.write(f"1) Training in progress : Epoch {i + 1}/{self.num_runs} ({int(percent_complete)})% completed")
+            sys.stdout.flush()
+
         if element == None:
-            minirocket_result = round(_results.mean()*100, 2)
-            print(f'Minirocket을 이용한 분류 정확도 {minirocket_result}%')
+            minirocket_result = round(_results.mean()*100)
+            print(f"\n2) Minirocket classification accuracy: {minirocket_result}%")
+
             return minirocket_result
+
         else:
             minirocket_split_result = _results.mean(axis=-1)
-            mean_value = np.mean(minirocket_split_result)
-            minirocket_result = np.insert(minirocket_split_result , 0, mean_value)
+            mean_value = np.mean(minirocket_split_result[0:3])
+            minirocket_result = np.round(np.insert(minirocket_split_result, 0, mean_value) * 100)
+            print(f"\n2) Minirocket classification accuracy : {minirocket_result[0]}%   ==>   ({', '.join([f'{acc}%' for acc in minirocket_result[1:4]])}  /  {', '.join([f'{acc}%' for acc in minirocket_result[4:7]])})")
 
             return minirocket_result
 
-    def split_y_test(self, x_test, y_test, element):
+    def split_y_test(self, x_test, y_test, element, augment_num_angles):
         if element != None:
             indices_1 = [0, 1, 2, 9, 10, 11]; indices_2 = [3, 4, 5, 12, 13, 14]; indices_3 = [6, 7, 8, 15, 16, 17]
-            x_test_1 = [x_test[indices_1], x_test[indices_2], x_test[indices_3]]
-            y_test_1 = [y_test[indices_1], y_test[indices_2], y_test[indices_3]]
-
             ind_1 = [0, 3, 6, 9, 12, 15]; ind_2 = [1, 4, 7, 10, 13, 16]; ind_3 = [2, 5, 8, 11, 14, 17]
-            x_test_2 = [x_test[ind_1], x_test[ind_2], x_test[ind_3]]
-            y_test_2 = [y_test[ind_1], y_test[ind_2], y_test[ind_3]]
+            aug_indices_list = [np.array([], dtype=int) for _ in range(3)]
+            aug_ind_list = [np.array([], dtype=int) for _ in range(3)]
+
+            for num, indices in enumerate([indices_1, indices_2, indices_3]):
+                for i in indices:
+                    aug_indices_list[num] = np.concatenate((aug_indices_list[num], np.arange(i * augment_num_angles, i * augment_num_angles + augment_num_angles)))
+            for num, ind in enumerate([ind_1, ind_2, ind_3]):
+                for i in ind:
+                    aug_ind_list[num] = np.concatenate((aug_ind_list[num], np.arange(i * augment_num_angles, i * augment_num_angles + augment_num_angles)))
+
+            x_test_1 = [x_test[aug_indices_list[0]], x_test[aug_indices_list[1]], x_test[aug_indices_list[2]]]
+            y_test_1 = [y_test[aug_indices_list[0]], y_test[aug_indices_list[1]], y_test[aug_indices_list[2]]]
+
+            x_test_2 = [x_test[aug_ind_list[0]], x_test[aug_ind_list[1]], x_test[aug_ind_list[2]]]
+            y_test_2 = [y_test[aug_ind_list[0]], y_test[aug_ind_list[1]], y_test[aug_ind_list[2]]]
 
             x_test_all = [x_test_1, x_test_2]
             y_test_all = [y_test_1, y_test_2]
