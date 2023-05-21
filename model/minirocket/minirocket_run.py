@@ -22,9 +22,15 @@ def train_test_dir_path(dir_path):
     return train_dir_path, test_dir_path, feature_train_test
 
 all_dir_path = []
-dir_paths = [os.path.join("../../training_test_data_generator/merged_sample3/s12_22/angle360_step10", feature) for feature in ["distance", "height", "type"]]
+
+# 5/22 미팅자료 실험을 위해 수정해야 하는 부분
+dir_paths = [os.path.join("../../training_test_data_generator/merged_sample3/all/angle360_step10", feature) for feature in ["distance", "height", "type"]]
+angle_interval = 180
+# 기본 36개의 각도를 다 사용하는 angle_interval = 10
+
 split_accuracy = True
-augmentation = False
+augmentation = True
+total_angle_num = 36
 
 for dir_path in dir_paths :
     subdir_name = next(os.walk(dir_path))[1]
@@ -51,10 +57,10 @@ for num, dir_path in enumerate(all_dir_path):
 
     if split_accuracy == True:
         element = train_test_set_composition.split('(')[0]
-        minirocket_result = minirocket.main(augmentation=augmentation, element=element)
+        minirocket_result = minirocket.main(augmentation=augmentation, element=element, total_angle_num=total_angle_num, angle_interval=angle_interval)
     else :
         element = None
-        minirocket_result = minirocket.main(augmentation=augmentation, element=element)
+        minirocket_result = minirocket.main(augmentation=augmentation, element=element, total_angle_num=total_angle_num, angle_interval=angle_interval)
 
     # 새로운 값 추가
     if split_accuracy == True:
@@ -76,10 +82,4 @@ for num, dir_path in enumerate(all_dir_path):
     print("\n")
 
 # 데이터프레임을 엑셀 파일로 저장
-result_df.to_excel('sample_result_100.xlsx', index=False)
-
-
-
-
-
-
+result_df.to_excel('ss_test.xlsx', index=False)

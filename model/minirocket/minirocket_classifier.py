@@ -11,13 +11,13 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import MinMaxScaler
 
 class minirocket_clf:
-    def __init__(self, train_dir_path, test_dir_path, num_runs=2, num_kernels=10000):
+    def __init__(self, train_dir_path, test_dir_path, num_runs=5, num_kernels=10000):
         self.train_dir_path = train_dir_path
         self.test_dir_path = test_dir_path
         self.num_runs = num_runs
         self.num_kernels = num_kernels
 
-    def main(self, augmentation, element):
+    def main(self, augmentation, element, total_angle_num, angle_interval):
         x_train, y_train = self.load_dataset(dir_path=self.train_dir_path, mode="TRAIN", shuffle=True)
         x_test, y_test = self.load_dataset(dir_path=self.test_dir_path, mode="TEST", shuffle=False)
 
@@ -29,6 +29,10 @@ class minirocket_clf:
             x_test, y_test, augment_num_angles = self.augment_data(x_test, y_test, shuffle=False)
         else:
             augment_num_angles = 1
+
+        if angle_interval != 10:
+            x_train = self.reshape_by_angle_interval(x_train, total_angle_num=total_angle_num, angle_interval=angle_interval)
+            x_test = self.reshape_by_angle_interval(x_test, total_angle_num=total_angle_num, angle_interval=angle_interval)
 
         print()
 
@@ -112,6 +116,23 @@ class minirocket_clf:
         print("\t - Original to Augmented 'x_data / y_data' shape:", x_data.shape, "/", y_data.shape, "->", augmented_x_data.shape, "/", augmented_y_data.shape)
 
         return augmented_x_data, augmented_y_data, num_angles
+
+    def reshape_by_angle_interval(self, data, total_angle_num, angle_interval):
+        angle_num = (total_angle_num * 10) // angle_interval
+
+        # 선택할 각도 인덱스 계산
+        angle_indices = np.linspace(0, total_angle_num - 1, angle_num, dtype=int)
+
+        # 새로운 데이터셋 생성
+        new_data = np.zeros((data.shape[0], angle_num, *data.shape[2:]))
+
+        # 각도 인덱스를 이용하여 데이터 복사
+        for i, angle_idx in enumerate(angle_indices):
+            new_data[:, i, :] = data[:, angle_idx, :]
+
+        print(f"\t - X_Data reshaped by angle interval (angle interval - {angle_interval} degree) : ", new_data.shape)
+
+        return new_data
 
     def train_test_minirocket(self, x_train, y_train, x_test, y_test, element, augment_num_angles):
         if element == None:

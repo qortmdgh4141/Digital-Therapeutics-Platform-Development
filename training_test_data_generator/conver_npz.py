@@ -23,7 +23,7 @@ class convert_dat_to_npz:
         self.angle_range_str = str(self.angleCount) + '_(' + str(self.angleStep) + ')'
 
     def main(self, Feature_Set=None, train_feature=None, test_feature=None):
-        modenames = [mode["fileName"] for mode in self.mode_dir_list if mode["use"]]
+        modenames = [mode["fileName"] for mode in self.mode_dir_list if mode["use"]][0]
 
         cache_subdir_paths = [os.path.join("cache_folder\\", cache_subdir) for cache_subdir in ["cache_train", "cache_test", "cache_undivided"]]
         for cache_subdir_path in cache_subdir_paths:
