@@ -124,7 +124,7 @@ class minirocket_clf:
         angle_indices = np.linspace(0, total_angle_num - 1, angle_num, dtype=int)
 
         # 새로운 데이터셋 생성
-        new_data = np.zeros((data.shape[0], angle_num, *data.shape[2:]))
+        new_data = np.zeros((data.shape[0], angle_num, *data.shape[2:]), dtype=data.dtype)
 
         # 각도 인덱스를 이용하여 데이터 복사
         for i, angle_idx in enumerate(angle_indices):

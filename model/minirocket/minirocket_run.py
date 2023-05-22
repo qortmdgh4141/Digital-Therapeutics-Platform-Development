@@ -24,9 +24,10 @@ def train_test_dir_path(dir_path):
 all_dir_path = []
 
 # 5/22 미팅자료 실험을 위해 수정해야 하는 부분
-dir_paths = [os.path.join("../../training_test_data_generator/merged_sample3/all/angle360_step10", feature) for feature in ["distance", "height", "type"]]
-angle_interval = 180
+dir_paths = [os.path.join("../../training_test_data_generator/merged_sample3/s11_22/angle360_step10", feature) for feature in ["distance", "height", "type"]]
+# angle_interval = 360
 # 기본 36개의 각도를 다 사용하는 angle_interval = 10
+angle_interval = 10
 
 split_accuracy = True
 augmentation = True
@@ -82,4 +83,4 @@ for num, dir_path in enumerate(all_dir_path):
     print("\n")
 
 # 데이터프레임을 엑셀 파일로 저장
-result_df.to_excel('ss_test.xlsx', index=False)
+result_df.to_excel('sample_result_s11_s22.xlsx', index=False)
