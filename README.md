@@ -32,6 +32,7 @@
 ### 🚀 Deep Learning Model
 <p>
   <img src="https://img.shields.io/badge/MiniRocket-41BDF5?style=flat-square?"/>
+  <img src="https://img.shields.io/badge/CNN-4169E1?style=flat-square?"/>
   <img src="https://img.shields.io/badge/MLP-5C5543?style=flat-square?"/>
   <img src="https://img.shields.io/badge/KNN-FF0000?style=flat-square?"/>
   <img src="https://img.shields.io/badge/SVM-FFFF00?style=flat-square?"/>
