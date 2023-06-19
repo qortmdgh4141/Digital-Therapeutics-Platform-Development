@@ -1,5 +1,5 @@
 # 💊 Digital Therapeutics Platform Development  
-
+ 
 📌 _Note: This study is currently ongoing, and I am participating as a researcher at the Artificial Intelligence Convergence Institute at Sungkyunkwan University._ <br/> <br/> 
 
 ### 1. &nbsp; Research Project Title <br/>
