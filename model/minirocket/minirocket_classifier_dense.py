@@ -10,6 +10,12 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import MinMaxScaler
 
+from keras import initializers
+from keras.optimizers import Adam
+from keras.models import Sequential
+from keras.layers import Flatten, Dense, Dropout, Conv3D, MaxPooling3D, MaxPooling2D, Conv2D, BatchNormalization, Conv3DTranspose, Permute, Activation, LeakyReLU
+from keras import regularizers
+
 class minirocket_clf:
     def __init__(self, train_dir_path, test_dir_path, num_runs=1, num_kernels=10000):
         self.train_dir_path = train_dir_path
@@ -157,9 +163,8 @@ class minirocket_clf:
             parameters = fit(x_train)
 
             #호호
-            print("x_train shape")
-            print(x_train.shape)
-            print(x_test.shape)
+            #print(x_train.shape)
+            #print(x_test.shape)
 
             # Ouput shape - x_train_shape : (36, 36, 8008) -> x_train_transform_shape : (36, 9996)
             # -- transform training -----------------------------------------------
@@ -169,12 +174,10 @@ class minirocket_clf:
             x_test_transform = transform(x_test, parameters)
 
             # 호호
-            print("---")
-            print("x_train_transformer shape")
-            print(x_train_transform.shape)
-            print(x_test_transform.shape)
+            #print("---")
+            #print(x_train_transform.shape)
+            #print(x_test_transform.shape)
 
-            print()
             # -- training ---------------------------------------------------------
             classifier = RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
             classifier = make_pipeline(StandardScaler(with_mean=True), classifier)

@@ -13,10 +13,15 @@ def reset():
     Height_Set[:] = ["height_0cm", "height_2cm", "height_4cm"]
 
 # sample 폴더의 하위디렉토리 구성
+#Label_Set = ["benign_tumor", "malignant_tumor"]
+#Type_Set = ["type_1.5ml", "type_2ml", "type_4ml"]
+#Distance_Set = ["distance_1cm", "distance_3cm", "distance_5cm"]
+#Height_Set = ["height_0cm", "height_2cm", "height_4cm"]
+
 Label_Set = ["benign_tumor", "malignant_tumor"]
-Type_Set = ["type_1.5ml", "type_2ml", "type_4ml"]
-Distance_Set = ["distance_1cm", "distance_3cm", "distance_5cm"]
-Height_Set = ["height_0cm", "height_2cm", "height_4cm"]
+Type_Set = ["type_2ml"]
+Distance_Set = ["distance_7cm"]
+Height_Set = ["height_0cm"]
 
 # 학습 데이터셋으로 사용할 RF S 매개변수 선택
 modeS11 = {"use": False, "fileName": "s11", "reset": False, "s11": True, "s21": False, "s12": False, "s22": False}
@@ -28,12 +33,12 @@ modeS11_21 = {"use": False, "fileName": "s11_21", "reset": False, "s11": True, "
 modeS12_22 = {"use": False, "fileName": "s12_22", "reset": False, "s11": False, "s21": False, "s12": True, "s22": True}
 
 modeS21_12 = {"use": False, "fileName": "s21_12", "reset": False, "s11": False, "s21": True, "s12": True, "s22": False}
-modeS11_22 = {"use": True, "fileName": "s11_22", "reset": False, "s11": True, "s21": False, "s12": False, "s22": True}
+modeS11_22 = {"use": False, "fileName": "s11_22", "reset": False, "s11": True, "s21": False, "s12": False, "s22": True}
 
 #modeRx2 = {"use": False, "fileName": "rx2", "reset": False, "s11": False, "s21": True, "s12": False, "s22": True}
 #modeRx1 = {"use": False, "fileName": "rx1", "reset": False, "s11": True, "s21": False, "s12": True, "s22": False}
 #modeRx2 = {"use": False, "fileName": "rx2", "reset": False, "s11": False, "s21": True, "s12": False, "s22": True}
-modeAll = {"use": False, "fileName": "all", "reset": False, "s11": True, "s21": True, "s12": True, "s22": True}
+modeAll = {"use": True, "fileName": "all", "reset": False, "s11": True, "s21": True, "s12": True, "s22": True}
 
 # mode_dir_list = (modeS11, modeS21, modeS12, modeS22, modeRx1, modeRx2, modeAll)
 mode_dir_list = (modeS11, modeS21, modeS12, modeS22, modeS11_21, modeS12_22, modeS21_12, modeS11_22, modeAll)
@@ -45,7 +50,8 @@ if true_count != 1:
 
 
 # original_sample_list 폴더의 sample 폴더 선택
-sample_num_name = "sample3"
+#sample_num_name = "sample3"
+sample_num_name = "test_distanc_7cm(sample3)"
 
 # 각도의 최댓값을 나타내는 변수
 angleCount = 360
@@ -53,7 +59,7 @@ angleCount = 360
 angleStep = 10
 
 # 학습/테스트 데이터셋을 나눌지 결정
-train_test_split = True
+train_test_split = False
 
 dat_to_npz = convert_dat_to_npz(Label_Set=Label_Set, Type_Set=Type_Set, Distance_Set=Distance_Set, Height_Set= Height_Set,
                                 mode_dir_list=mode_dir_list, sample_num_name=sample_num_name, angleCount=angleCount, angleStep=angleStep, train_test_split=train_test_split)
