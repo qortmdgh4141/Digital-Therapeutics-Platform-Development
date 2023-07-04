@@ -165,7 +165,7 @@ if __name__ == "__main__":
             progress_bar = tqdm.tqdm(range(4))
             progress_bar.set_description("Please wait a moment while the PicoVNA is measuring the frequency  ")
             for _ in progress_bar:
-                time.sleep(1)
+                time.sleep(4)
 
             while True:
                 arduino.write(command.encode())
