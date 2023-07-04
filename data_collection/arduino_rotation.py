@@ -45,56 +45,112 @@ class Pyqt_Bar(QMainWindow):
         QApplication.processEvents()
 
 # Picovna Software 조작
-def automate_data_save_picovna(file_path, num, positions):
+def click_position(x, y):
+    pyautogui.moveTo(x=x, y=y)
+    pyautogui.click(button='left')
+
+def automate_data_save_picovna(write_list, positions):
     # 1) File 클릭  -->  2) Save Measurements 클릭  -->  3) Real + Imag 클릭  -->  4) Save 클릭
     for position in positions[:4]:
         click_position(*position)
 
-    # 5) 파일 이름(N) 클릭 후, 파일명 입력
-    click_position(*positions[4])
-    pyautogui.hotkey('ctrl', 'a')
-    pyautogui.press('backspace')
-    pyautogui.typewrite(str(num))
-    click_position(*positions[5])
+    # 5) 경로 클릭 후, 파일명 입력  -->  6) 파일 이름(N) 클릭 후, 파일명 입력 및 저장
+    for i, write_position in enumerate(positions[4:6]):
+        click_position(*write_position)
+        pyautogui.hotkey('ctrl', 'a')
+        pyautogui.press('backspace')
+        pyautogui.typewrite(write_list[i])
+        pyautogui.press('enter')
 
-    # 6) 저장(S) 클릭
-    click_position(*positions[6])
-    pyautogui.press('esc')
     pyautogui.press('esc')
 
     # 올바르게 파일이 저장 안될 시, 프로그램 종료
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"The file {file_path} does not exist.")
+    data_path = os.path.join(write_list[0], f"{write_list[1]}.dat")
+    if not os.path.exists(data_path):
+        raise FileNotFoundError(f"The file {data_path} does not exist.")
 
-def click_position(x, y):
-    pyautogui.moveTo(x=x, y=y)
-    pyautogui.click(button='left')
+# 올바른 딕셔너리 경로를 설정하였는지 검사
+def check_dict(dict):
+    true_count = 0
+    key_name = None
+    for key, value in dict.items():
+        if value is True:
+            true_count += 1
+            key_name = key
+
+    if true_count == 0:
+        raise ValueError("The dictionary must have at least one True value.")
+    elif true_count > 1:
+        raise ValueError("The dictionary can only have one True value.")
+
+    return key_name
 
 App = QApplication(sys.argv)
 pyqt_bar = Pyqt_Bar()  # create the instance of our Window
 
 positions = [
-    (32, 59),   # 1) File 클릭
+    (32, 59),  # 1) File 클릭
     (117, 295),  # 2) Save Measurements 클릭
     (477, 321),  # 3) Real + Imag 클릭
     (325, 586),  # 4) Save 클릭
-    (404, 808),  # 5) 파일 이름(N) 클릭 후, 파일명 입력
-    (372, 890),  # 5) 파일 이름(N) 클릭 후, 파일명 입력 후, 빈공간 클릭
-    (1238, 914),  # 6) 저장(S) 클릭
+    (382, 240),  # 5) 경로 클릭 후, 파일명 입력
+    (404, 808),  # 6) 파일 이름(N) 클릭 후, 파일명 입력 및 저장
 ]
 
-comPort = "COM4"
-angleSet = range(0, 360, 10)
-cache_directory = "C:\\Users\\82104\\Desktop\\RF 기반 생체 정보 및 헬스케어\\데이터 수집\\sample_data\\cache"
+T=True; F=False
+org_path = "C:\\Users\\82104\\Desktop\\DTX\Digital-Therapeutics-Platform-Development\\data_collection\\sample_data\\sample5"
+
+class_tumor = {
+                "benign_tumor"    : T,
+                "malignant_tumor" : F}
+container = {
+                "container_100ml" : T,
+                "container_130ml" : F,
+
+                "container_150ml" : F,
+                "container_200ml": F,
+
+                "container_250ml": F,
+                "container_300ml": F}
+
+captube = {
+                "captube_0.2ml" : T,
+                "captube_0.5ml" : F}
+
+distance = {
+                "distance_1cm" : T,
+                "distance_3cm" : F,
+                "distance_5cm" : F}
+
+height = {
+                "height_0cm" : T,
+                "height_2cm" : F,
+                "height_4cm" : F}
+
+# 딕셔너리당 True가 한개가 아닐시 오류출력 (+Caps Lock 키가 켜져있으면 오류가 나니, 반드시 비활성화)
+key_list = []
+dic_list = [class_tumor, container, captube, distance, height]
+for dict in dic_list:
+    key_name = check_dict(dict)
+    key_list.append(key_name)
+
+# 디렉토리 내 파일 개수 확인 후, 파일 개수가 0보다 큰 경우 오류 출력 (==빈디렉토리가 아니면 오류출력)
+save_directory = os.path.join(org_path, *key_list)
+if len(os.listdir(save_directory)) > 0:
+    raise ValueError(f"The {save_directory} directory is not empty.")
 
 # Arduino 조작
 if __name__ == "__main__":
     try:
+        comPort = "COM4"
+        angleSet = range(0, 360, 10)
+
         arduino = serial.Serial(port=comPort, baudrate=9600, timeout=1)
         print("\nArduino connection here!")
         print("-" * 115)
 
         for num, angle in enumerate(angleSet):
+
             if angle % 30 == 0:
                 command = "1"
             else:
@@ -102,9 +158,8 @@ if __name__ == "__main__":
 
             print(f"\n[angle={angle}°]", end="\t:\t")
             print(f"Picovna is automatically saving the file {num}.dat...")
-            file_path = os.path.join(cache_directory, f"{num}.dat")
-
-            automate_data_save_picovna(file_path=file_path, num=num, positions=positions)
+            write_list = [save_directory, str(num)]
+            automate_data_save_picovna(write_list=write_list, positions=positions)
             pyqt_bar.update_value(value=num)
 
             progress_bar = tqdm.tqdm(range(4))
@@ -118,6 +173,10 @@ if __name__ == "__main__":
                     value = arduino.readline()
                     if value.decode()[:6] == "rotate":
                         break
+
+        # 최종 저장된 파일 개수가 36개가 아닐 시, 오류 출력
+        if len(os.listdir(save_directory)) != 36:
+            raise ValueError(f"The number of files in {save_directory} is not equal to 36.")
 
         sys.exit(App.exec())  # start the app
 
