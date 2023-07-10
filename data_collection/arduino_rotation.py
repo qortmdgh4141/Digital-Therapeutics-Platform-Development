@@ -98,34 +98,34 @@ positions = [
 ]
 
 T=True; F=False
-org_path = "C:\\Users\\82104\\Desktop\\DTX\Digital-Therapeutics-Platform-Development\\data_collection\\sample_data\\sample5"
+org_path = "C:\\Users\\82104\\Desktop\\DTX\Digital-Therapeutics-Platform-Development\\data_collection\\sample_data\\sample4"
 
 class_tumor = {
-                "benign_tumor"    : T,
-                "malignant_tumor" : F}
+                "benign_tumor"    : F,
+                "malignant_tumor" : T}
 container = {
-                "container_100ml" : T,
-                "container_130ml" : F,
+                "container_100ml" : F,
+                "container_130ml" : T,
 
                 "container_150ml" : F,
-                "container_200ml": F,
+                "container_200ml" : F,
 
                 "container_250ml": F,
                 "container_300ml": F}
 
 captube = {
-                "captube_0.2ml" : T,
-                "captube_0.5ml" : F}
+                "captube_0.2ml" : F,
+                "captube_0.5ml" : T}
 
 distance = {
-                "distance_1cm" : T,
+                "distance_1cm" : F,
                 "distance_3cm" : F,
-                "distance_5cm" : F}
+                "distance_5cm" : T}
 
 height = {
-                "height_0cm" : T,
+                "height_0cm" : F,
                 "height_2cm" : F,
-                "height_4cm" : F}
+                "height_4cm" : T}
 
 # 딕셔너리당 True가 한개가 아닐시 오류출력 (+Caps Lock 키가 켜져있으면 오류가 나니, 반드시 비활성화)
 key_list = []
@@ -138,6 +138,14 @@ for dict in dic_list:
 save_directory = os.path.join(org_path, *key_list)
 if len(os.listdir(save_directory)) > 0:
     raise ValueError(f"The {save_directory} directory is not empty.")
+else:
+    print()
+    print("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓")
+    print("┃   Starting data collection. ┃")
+    print("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛")
+
+    for i, key in enumerate(key_list):
+        print(f" {i + 1}). {key}")
 
 # Arduino 조작
 if __name__ == "__main__":
@@ -146,8 +154,10 @@ if __name__ == "__main__":
         angleSet = range(0, 360, 10)
 
         arduino = serial.Serial(port=comPort, baudrate=9600, timeout=1)
-        print("\nArduino connection here!")
+        print("\n※ Successfully connected to Arduino!")
         print("-" * 115)
+
+        start_time = time.time()
 
         for num, angle in enumerate(angleSet):
 
@@ -165,7 +175,7 @@ if __name__ == "__main__":
             progress_bar = tqdm.tqdm(range(4))
             progress_bar.set_description("Please wait a moment while the PicoVNA is measuring the frequency  ")
             for _ in progress_bar:
-                time.sleep(4)
+                time.sleep(1)
 
             while True:
                 arduino.write(command.encode())
@@ -177,6 +187,22 @@ if __name__ == "__main__":
         # 최종 저장된 파일 개수가 36개가 아닐 시, 오류 출력
         if len(os.listdir(save_directory)) != 36:
             raise ValueError(f"The number of files in {save_directory} is not equal to 36.")
+        else:
+            print()
+            print("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓")
+            print("┃   Data saved successfully.  ┃")
+            print("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛")
+
+            for i, key in enumerate(key_list):
+                print(f" {i + 1}). {key}")
+
+            end_time = time.time()
+
+            execution_time = end_time - start_time
+            minutes = int(execution_time // 60)
+            seconds = int(execution_time % 60)
+
+            print(f"\n※ The program took {minutes} minutes and {seconds} seconds to complete.")
 
         sys.exit(App.exec())  # start the app
 
